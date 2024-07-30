@@ -125,7 +125,7 @@ def get_conversational_chain(history_aware_retriever):
     "You function as an automated tutor and your goal is to help students better understand content. "
     "Use the following pieces of retrieved context to answer "
     "the question. If you don't know the answer, say that you "
-    "don't know.
+    "don't know. "
     "\n\n"
     "{context}"
 )
