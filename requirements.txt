@@ -9,3 +9,5 @@ openai
 bs4
 nest_asyncio
 llama-parse
+protobuf==3.20.*
+
