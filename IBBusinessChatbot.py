@@ -23,6 +23,10 @@ from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
+from langchain_core.documents import Document
+
+
+
 
 st.set_page_config(page_title="Document Genie", layout="wide")
 
@@ -45,11 +49,11 @@ Follow these simple steps to interact with the chatbot:
 
 
 # This is the first API key input; no need to repeat it in the main function.
-name = st.text_input("Enter your name", type="password", key="user_question")
+name = st.text_input("Enter your name", type="password", key="name")
 
 # Initialize session state variables
 if 'vectorstore_created' not in st.session_state:
-    st.session_state.vectorstore_created = False
+    st.session_state.vectorstore = None
 
 if 'history_aware_retriever_created' not in st.session_state:
     st.session_state.history_aware_retriever = None
@@ -71,28 +75,29 @@ def get_pdf_text():
     )
 
 # sync
-documents = parser.load_data("ocr_unit1.pdf")
+    documents = parser.load_data("/Users/akshat/Downloads/ocr_unit1.pdf")
 
-text = '\n\n'.join([d.text for d in documents])
+    text = '\n\n'.join([d.text for d in documents])
 
-session_init = False
+    return text
 
 def create_vector_store(text):
 
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
     splits = text_splitter.split_text(text)
-    vectorstore = Chroma.from_documents(documents=splits, embedding=OpenAIEmbeddings())
+    documents = [Document(page_content=split) for split in splits]
+
+    vectorstore = Chroma.from_documents(documents=documents, embedding=OpenAIEmbeddings(openai_api_key = "sk-proj-gJQdBTPV8gFbZSjmcp2ET3BlbkFJwqNA0XMsVd7wpfCAlxO5"))
 
     retriever = vectorstore.as_retriever()
-    retriever.save_local("chroma_retriever")
 
-    st.session_state.vectorstore_created = True
+    st.session_state.vectorstore = retriever
 
 
-def create_retriever_with_history():
-    llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0)
+def create_retriever_with_history(retriever = st.session_state.vectorstore):
+    llm = ChatOpenAI(model="gpt-4o", openai_api_key = "sk-proj-gJQdBTPV8gFbZSjmcp2ET3BlbkFJwqNA0XMsVd7wpfCAlxO5", temperature=0)
 
-    retriever = Chroma.load_local("chroma_retriever", OpenAIEmbeddings())
+    # retriever = Chroma.load_local("chroma_retriever", OpenAIEmbeddings(api_key = "sk-proj-gJQdBTPV8gFbZSjmcp2ET3BlbkFJwqNA0XMsVd7wpfCAlxO5"))
     ### Contextualize question ###
     contextualize_q_system_prompt = (
         "Given a chat history and the latest user question "
@@ -113,12 +118,12 @@ def create_retriever_with_history():
     )
 
     st.session_state.history_aware_retriever = history_aware_retriever
+    st.session_state.llm = llm
 
     # return history_aware_retriever
 
 
-def get_conversational_chain(history_aware_retriever):
-    llm = ChatOpenAI(model="gpt-3.5-turbo", api_key = "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", temperature=0)
+def get_conversational_chain(history_aware_retriever, llm):
 
     system_prompt = (
     "You are an assistant for question-answering tasks related to IB Business. "
@@ -188,7 +193,7 @@ def validate_document_viability():
     pass
 
 def user_input(user_question, conversational_rag_chain):
-    response = st.session_state.conversational_rag_chain.invoke(
+    response = conversational_rag_chain.invoke(
                     {"input": user_question},
                     config={
                         "configurable": {"session_id": "abc123"}
@@ -203,29 +208,30 @@ def user_input(user_question, conversational_rag_chain):
     # docs = new_db.similarity_search(user_question)
     # chain = get_conversational_chain()
     # response = chain({"input_documents": docs, "question": user_question}, return_only_outputs=True)
-    st.write("Reply: ", response["output_text"])
+    st.write("Reply: ", response)
 
 def main():
     st.header("Diplomaly Q&A Chatbot")
 
-    if not st.session_state.vectorstore_created:
+    if st.session_state.vectorstore is None:
 
         #for now we dont pass in anything here;
 
         text = get_pdf_text()
         create_vector_store(text)
+        print("done with this shit")
 
     if st.session_state.history_aware_retriever is None:
-        create_retriever_with_history()
+        create_retriever_with_history(st.session_state.vectorstore)
 
     if st.session_state.conversational_rag_chain is None:
-        get_conversational_chain(st.session_state.history_aware_retriever)
+        get_conversational_chain(st.session_state.history_aware_retriever, st.session_state.llm)
 
 
     user_question = st.text_input("Ask any question about Unit 1", key="user_question")
 
     if user_question:  # Ensure API key and user question are provided
-        user_input(user_question, api_key)
+        user_input(user_question, st.session_state.conversational_rag_chain)
 
     # with st.sidebar:
     #     st.title("Menu:")
