@@ -24,7 +24,6 @@ import torch
 
 
 from openai import OpenAI
-api_key = os.environ["OPENAI_API_KEY"]
 
 st.session_state.client = OpenAI(api_key = api_key)
 
@@ -68,11 +67,11 @@ def create_vector_store(text):
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
     splits = text_splitter.split_text(text)
     documents = [Document(page_content=split) for split in splits]
-    vectorstore = Chroma.from_documents(documents=documents, embedding=OpenAIEmbeddings(openai_api_key=os.environ["OPENAI_API_KEY"]))
+    vectorstore = Chroma.from_documents(documents=documents, embedding=OpenAIEmbeddings(openai_api_key=st.secrets["OPENAI_API_KEY"]))
     st.session_state.vectorstore = vectorstore.as_retriever()
 
 def create_retriever_with_history():
-    st.session_state.llm = ChatOpenAI(model="gpt-4", openai_api_key=os.environ["OPENAI_API_KEY"], temperature=0)
+    st.session_state.llm = ChatOpenAI(model="gpt-4", openai_api_key=st.secrets["OPENAI_API_KEY"], temperature=0)
     
     contextualize_q_system_prompt = (
         "Given a chat history and the latest user question "
