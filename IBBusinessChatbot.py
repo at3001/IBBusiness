@@ -28,7 +28,9 @@ from openai import OpenAI
 
 st.session_state.client = OpenAI(api_key = st.secrets["api_key"])
 
-os.environ['PINECONE_API_KEY'] = 
+
+os.environ['PINECONE_API_KEY'] = st.secrets["pinecone_api_key"]
+
 # Initialize session state variables
 if 'chat_history' not in st.session_state:
     st.session_state.chat_history = []
@@ -54,7 +56,7 @@ if 'valid_q_chain' not in st.session_state:
 def get_pdf_text():
     nest_asyncio.apply()
     parser = LlamaParse(
-        api_key=,
+        api_key= st.secrets["parse_key"],
         result_type="markdown",
         num_workers=4,
         verbose=True,
