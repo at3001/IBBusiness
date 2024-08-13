@@ -95,7 +95,7 @@ def create_vector_store(text):
     st.session_state.vectorstore = vectorstore.as_retriever()
 
 def create_retriever_with_history():
-    st.session_state.llm = ChatOpenAI(model="gpt-4", openai_api_key=st.secrets["api_key"], temperature=0)
+    st.session_state.llm = ChatOpenAI(model="gpt-4o-mini", openai_api_key=st.secrets["api_key"], temperature=0)
     
     contextualize_q_system_prompt = (
         "Given a chat history and the latest user question "
