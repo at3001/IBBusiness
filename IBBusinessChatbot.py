@@ -24,7 +24,7 @@ import torch
 
 from openai import OpenAI
 
-st.session_state.client = OpenAI(api_key = api_key)
+st.session_state.client = OpenAI(api_key = st.secrets["api_key"])
 
 
 # Initialize session state variables
@@ -63,7 +63,7 @@ def get_pdf_text():
     return text
 
 def create_vector_store(text):
-    st.session_state.pc = Pinecone(api_key=pinecone_api_key)
+    st.session_state.pc = Pinecone(api_key=st.secrets["pinecone_api_key"])
 
     index_name = "langchain-test-index"  # change if desired
 
@@ -84,14 +84,14 @@ def create_vector_store(text):
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
     splits = text_splitter.split_text(text)
     documents = [Document(page_content=split) for split in splits]
-    embeddings = OpenAIEmbeddings(openai_api_key=api_key)
+    embeddings = OpenAIEmbeddings(openai_api_key=st.secrets["api_key"])
 
     vectorstore = PineconeVectorStore.from_documents(documents, embeddings, index_name = "langchain-test-index")
 
     st.session_state.vectorstore = vectorstore.as_retriever()
 
 def create_retriever_with_history():
-    st.session_state.llm = ChatOpenAI(model="gpt-4", openai_api_key=st.secrets["OPENAI_API_KEY"], temperature=0)
+    st.session_state.llm = ChatOpenAI(model="gpt-4", openai_api_key=st.secrets["api_key"], temperature=0)
     
     contextualize_q_system_prompt = (
         "Given a chat history and the latest user question "
