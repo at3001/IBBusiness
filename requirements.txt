@@ -7,7 +7,6 @@ openai
 bs4
 nest_asyncio
 llama-parse
-streamlit
 langchain
 langchain-openai
 langchain-weaviate
