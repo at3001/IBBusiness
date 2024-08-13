@@ -1,5 +1,3 @@
-streamlit
-langchain
 langchain-chroma
 langchain-community
 langchain-core
@@ -9,5 +7,12 @@ openai
 bs4
 nest_asyncio
 llama-parse
+streamlit
+langchain
+langchain-openai
+langchain-weaviate
+langchain-pinecone
+weaviate-client
+pinecone-client
+torch
 protobuf~=3.19.0
-
