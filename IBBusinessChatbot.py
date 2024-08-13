@@ -22,11 +22,13 @@ from langchain_pinecone import PineconeVectorStore
 from pinecone import Pinecone, ServerlessSpec
 import torch
 
+import os
+
 from openai import OpenAI
 
 st.session_state.client = OpenAI(api_key = st.secrets["api_key"])
 
-
+os.environ['PINECONE_API_KEY'] = '0b836f77-eba3-400d-89b2-8f743c17c6bb'
 # Initialize session state variables
 if 'chat_history' not in st.session_state:
     st.session_state.chat_history = []
