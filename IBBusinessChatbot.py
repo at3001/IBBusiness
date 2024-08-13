@@ -4,7 +4,6 @@ from langchain.chains.question_answering import load_qa_chain
 from langchain.prompts import PromptTemplate
 import os
 
-from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 import nest_asyncio
 from llama_parse import LlamaParse
@@ -18,10 +17,13 @@ from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
 
-from transformers import AutoTokenizer, AutoModelForCausalLM
+import weaviate
+from langchain_weaviate.vectorstores import WeaviateVectorStore
+
+from langchain_pinecone import PineconeVectorStore
+
+from pinecone import Pinecone, ServerlessSpec
 import torch
-
-
 
 from openai import OpenAI
 
@@ -64,10 +66,31 @@ def get_pdf_text():
     return text
 
 def create_vector_store(text):
+    st.session_state.pc = Pinecone(api_key=pinecone_api_key)
+
+    index_name = "langchain-test-index"  # change if desired
+
+    existing_indexes = [index_info["name"] for index_info in st.session_state.pc.list_indexes()]
+
+    if index_name not in existing_indexes:
+        st.session_state.pc.create_index(
+            name=index_name,
+            dimension=1536,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+        )
+        while not st.session_state.pc.describe_index(index_name).status["ready"]:
+            time.sleep(1)
+
+    st.session_state.index = st.session_state.pc.Index(index_name)
+
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
     splits = text_splitter.split_text(text)
     documents = [Document(page_content=split) for split in splits]
-    vectorstore = Chroma.from_documents(documents=documents, embedding=OpenAIEmbeddings(openai_api_key=st.secrets["OPENAI_API_KEY"]))
+    embeddings = OpenAIEmbeddings(openai_api_key=api_key)
+
+    vectorstore = PineconeVectorStore.from_documents(documents, embeddings, index_name = "langchain-test-index")
+
     st.session_state.vectorstore = vectorstore.as_retriever()
 
 def create_retriever_with_history():
