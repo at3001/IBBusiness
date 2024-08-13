@@ -1,4 +1,3 @@
-langchain-chroma
 langchain-community
 langchain-core
 langchain-openai
@@ -9,9 +8,7 @@ nest_asyncio
 llama-parse
 langchain
 langchain-openai
-langchain-weaviate
 langchain-pinecone
-weaviate-client
 pinecone-client
 torch
 protobuf~=3.19.0
