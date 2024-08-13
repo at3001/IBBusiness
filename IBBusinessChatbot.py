@@ -17,9 +17,6 @@ from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
 
-import weaviate
-from langchain_weaviate.vectorstores import WeaviateVectorStore
-
 from langchain_pinecone import PineconeVectorStore
 
 from pinecone import Pinecone, ServerlessSpec
