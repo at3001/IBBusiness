@@ -69,7 +69,7 @@ def get_pdf_text():
 def create_vector_store(text):
     st.session_state.pc = Pinecone(api_key=st.secrets["pinecone_api_key"])
 
-    index_name = "langchain-test-index"  # change if desired
+    index_name = "diplomaly-index"  # change if desired
 
     existing_indexes = [index_info["name"] for index_info in st.session_state.pc.list_indexes()]
 
@@ -90,7 +90,7 @@ def create_vector_store(text):
     documents = [Document(page_content=split) for split in splits]
     embeddings = OpenAIEmbeddings(openai_api_key=st.secrets["api_key"])
 
-    vectorstore = PineconeVectorStore.from_documents(documents, embeddings, index_name = "langchain-test-index")
+    vectorstore = PineconeVectorStore.from_documents(documents, embeddings, index_name = "diplomaly-index")
 
     st.session_state.vectorstore = vectorstore.as_retriever()
 
